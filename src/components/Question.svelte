@@ -1,28 +1,29 @@
 <script>
   import Button from "../shared/Button.svelte";
-
+  import { createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
+  import { fly, slide, blur, scale, crossfade, fade } from "svelte/transition";
   import Card from "../shared/Card.svelte";
   export let questions;
   const shuffle = (array) => {
     return array.sort(() => Math.random() - 0.5);
   };
   let disabled = true;
-
   let activeQuestion = questions[0];
   let incorrect_answers = questions[0]["incorrect_answers"];
   let correct_answer = questions[0]["correct_answer"];
   let answers = [...incorrect_answers, correct_answer];
+  let cursor = true;
   answers = shuffle(answers);
   $: currentIndex = 0;
   $: score = 0;
   $: active = false;
   $: disableAnswerButton = false;
-  $: cursor = true;
   $: totQuestion = questions.length;
   $: wrong = false;
   $: correct = false;
   const nextQuestion = () => {
-    if (currentIndex !== totQuestion - 1) {
+    if (currentIndex !== totQuestion) {
       currentIndex++;
       activeQuestion = questions[currentIndex];
       incorrect_answers = questions[currentIndex]["incorrect_answers"];
@@ -52,32 +53,36 @@
   };
 </script>
 
-<div class="questions">
-  <div class="top">
+<div class="questions" out:scale|local>
+  <div class="top" transition:fade>
     <div class="title">
       <Card active>Question {currentIndex + 1} of {totQuestion}</Card>
 
       <Card>Score: {score}</Card>
     </div>
-    <div class="question-title">
+    <div class="question-title" transition:slide>
       <Card>
         <p>{activeQuestion["question"]}</p>
       </Card>
     </div>
   </div>
-  {#if disableAnswerButton}
-    <div class="feedback" class:wrong class:correct>
-      {#if correct}
-        Correct
-      {:else}
-        Incorrect
-      {/if}
-    </div>
-  {/if}
-  <div class="question-list">
+  <!-- {#if disableAnswerButton} -->
+  <div class="feedback" class:wrong class:correct transition:fly>
+    {#if correct}
+      Correct
+    {:else if wrong}
+      Incorrect
+    {/if}
+  </div>
+  <!-- {/if} -->
+  <div class="question-list" transition:scale>
     {#each answers as answer (Math.random() * 10000)}
-      <div class="question" on:click|once={() => handleAnswer(answer)}>
-        <Card {cursor}>
+      <div class="question">
+        <Card
+          {cursor}
+          on:click|once={() => handleAnswer(answer)}
+          active={disableAnswerButton && answer == correct_answer}
+        >
           <p>
             {answer}
           </p>
@@ -86,7 +91,17 @@
     {/each}
   </div>
   <div class="bottom">
-    <Button on:click={() => nextQuestion()} {disabled} {active}>Next</Button>
+    {#if totQuestion - 1 != currentIndex}
+      <Button on:click={() => nextQuestion()} {disabled} {active}>Next</Button>
+    {:else}
+      <Button
+        on:click={() => {
+          dispatch("startAgain");
+        }}
+        {disabled}
+        {active}>Start Again</Button
+      >
+    {/if}
   </div>
 </div>
 
@@ -128,6 +143,11 @@
   .score {
     width: auto;
   }
+  .wrong,
+  .correct {
+    font-weight: bold;
+    font-size: 1rem;
+  }
   .wrong {
     color: red;
     padding: 0.8em 1em;
@@ -135,7 +155,9 @@
     /* border-bottom: 2px solid red; */
   }
   .feedback {
-    margin-top: 1em;
+    /* margin-top: 1em; */
+    box-sizing: border-box;
+    height: 2em;
   }
   .correct {
     color: green;

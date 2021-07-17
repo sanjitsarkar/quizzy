@@ -1,11 +1,11 @@
 <script>
   export let active;
-  export let wrong;
-  export let correct;
+  export let wrong = false;
+  export let correct = false;
   export let cursor;
 </script>
 
-<div class="card" class:active class:wrong class:correct class:cursor>
+<div class="card" class:active class:wrong class:correct class:cursor on:click>
   <slot />
 </div>
 

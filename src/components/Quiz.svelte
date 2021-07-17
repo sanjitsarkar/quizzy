@@ -2,26 +2,21 @@
   import { fade, blur, fly, slide, scale } from "svelte/transition";
   import Button from "../shared/Button.svelte";
   import Question from "./Question.svelte";
-  $: questionNumber = 0;
   let isStarted = false;
-  let quiz = fetchQuiz();
+  let questions = [];
   async function fetchQuiz() {
-    const res = await fetch("https://opentdb.com/api.php?amount=10");
-    const quiz = await res.json();
-    return quiz;
+    const result = await fetch("https://opentdb.com/api.php?amount=10");
+    const data = await result.json();
+    return data.results;
   }
 
-  function nextQuestion() {
-    questionNumberr++;
-  }
   function startQuiz() {
-    questionNumber = 0;
-    isStarted = !isStarted;
-    quiz = fetchQuiz();
+    isStarted = true;
+    questions = fetchQuiz();
   }
 </script>
 
-<div class="quiz">
+<div class="quiz" transition:fade>
   {#if !isStarted}
     <h1>Quizzy</h1>
     <Button
@@ -31,10 +26,10 @@
       }}>Start</Button
     >
   {:else}
-    {#await quiz}
-      <h4>Loading...</h4>
-    {:then data}
-      <Question questions={data.results} />
+    {#await questions}
+      <h2>Loading...</h2>
+    {:then questions}
+      <Question {questions} on:startAgain={() => startQuiz()} />
     {/await}
   {/if}
 </div>
