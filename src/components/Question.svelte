@@ -1,35 +1,41 @@
 <script>
+  import { onMount } from "svelte";
+
   import Button from "../shared/Button.svelte";
   import Card from "../shared/Card.svelte";
   import QuizStore from "../stores/QuizStore";
-  export let questions;
-  // const shuffle = (array) => {
-  //   return array.sort(() => Math.random() - 0.5);
-  // };
+  // export let questions;
+  $: questions = [];
+  onMount(async () => {
+    QuizStore.subscribe(async (data) => {
+      questions = data;
+      console.log(data);
+    });
+  });
+  const shuffle = (array) => {
+    return array.sort(() => Math.random() - 0.5);
+  };
   $: count = 0;
-  $: totQuestion = questions.length;
-  $: activeQuestion = questions[count];
-  $: loading = true;
-  $: disabled = true;
-  $: wrong = false;
-  $: correct = false;
+  // let totQuestion = questions.length;
+  let activeQuestion = questions[count];
+  let loading = true;
+  let disabled = true;
+  let wrong = false;
+  let correct = false;
 
-  $: incorrect_answers = questions[count]["incorrect_answers"];
-  $: correct_answer = questions[count]["correct_answer"];
-  $: answers = [...incorrect_answers, correct_answer];
-  // answers = answers.sort();
+  let incorrect_answers = questions[count]["incorrect_answers"];
+  let correct_answer = questions[count]["correct_answer"];
+  let answers = [...incorrect_answers, correct_answer];
+  // answers = shuffle(answers);
 
   $: score = 0;
   $: active = false;
   $: disableButtonAnswer = false;
   $: cursor = true;
 
-  //   console.log(answers);
   const nextQuestion = () => {
     if (count !== totQuestion - 1) {
       count++;
-      wrong = false;
-      correct = false;
     } else {
     }
     disabled = !disabled;
@@ -65,19 +71,16 @@
   <div class="question-list">
     {#each answers as answer (answer)}
       <div class="question" on:click|once={() => handleAnswer(answer)}>
-        {#if answer == correct_answer && !disableButtonAnswer}
-          <Card {cursor} correct="true">
-            <p>
-              {answer}
-            </p>
-          </Card>
-        {:else}
-          <Card {cursor} {wrong}>
-            <p>
-              {answer}
-            </p>
-          </Card>
-        {/if}
+        <Card {cursor} correct="true">
+          <p>
+            {answer}
+          </p>
+        </Card>
+        <Card {cursor} wrong="true">
+          <p>
+            {answer}
+          </p>
+        </Card>
       </div>
     {/each}
   </div>

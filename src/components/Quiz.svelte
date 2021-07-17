@@ -6,30 +6,18 @@
   import axios from "axios";
   import Result from "./Result.svelte";
   let elevated = true;
-  $: isStarted = false;
-  $: loading = false;
-  $: questions = [];
-  $: active = true;
-  $: restartQuiz = false;
-  const startQuize = () => {
-    loading = true;
-    QuizStore.update(async (quiz) => {
-      const results = await axios.get("https://opentdb.com/api.php?amount=10");
-      // console.log(results.data["results"]);
-      loading = false;
-      isStarted = !isStarted;
-      questions = results.data["results"];
-      return [results.data["results"], ...quiz];
-    });
+  const fetchQuiz = async () => {
+    const results = await axios.get("https://opentdb.com/api.php?amount=10");
+    return await results.data["results"];
   };
-  //   startQuiz();
+
 </script>
 
 <div class="quiz">
-  {#if !isStarted}
+  <!-- {#if !isStarted}
     <h1>Quizzy</h1>
 
-    <Button on:click|once={() => startQuize()} {active}>
+    <Button on:click|once={() => startQuiz()} {active}>
       {#if loading}
         Loading...
       {:else if restartQuiz}
@@ -38,9 +26,14 @@
         Start Quiz
       {/if}
     </Button>
-  {:else}
-    <Question {questions} />
-  {/if}
+  {:else} -->
+  <!-- {#await questions}
+    Loading...
+  {:then data} -->
+  <!-- <h1>{data[0]["correct_answer"]}</h1> -->
+  <Question />
+  <!-- {/await} -->
+  <!-- {/if} -->
 </div>
 
 <style>
