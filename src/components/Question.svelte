@@ -1,54 +1,51 @@
 <script>
-  import { onMount } from "svelte";
-
   import Button from "../shared/Button.svelte";
+
   import Card from "../shared/Card.svelte";
-  import QuizStore from "../stores/QuizStore";
-  // export let questions;
-  $: questions = [];
-  onMount(async () => {
-    QuizStore.subscribe(async (data) => {
-      questions = data;
-      console.log(data);
-    });
-  });
+  export let questions;
   const shuffle = (array) => {
     return array.sort(() => Math.random() - 0.5);
   };
-  $: count = 0;
-  // let totQuestion = questions.length;
-  let activeQuestion = questions[count];
-  let loading = true;
   let disabled = true;
-  let wrong = false;
-  let correct = false;
 
-  let incorrect_answers = questions[count]["incorrect_answers"];
-  let correct_answer = questions[count]["correct_answer"];
+  let activeQuestion = questions[0];
+  let incorrect_answers = questions[0]["incorrect_answers"];
+  let correct_answer = questions[0]["correct_answer"];
   let answers = [...incorrect_answers, correct_answer];
-  // answers = shuffle(answers);
-
+  answers = shuffle(answers);
+  $: currentIndex = 0;
   $: score = 0;
   $: active = false;
-  $: disableButtonAnswer = false;
+  $: disableAnswerButton = false;
   $: cursor = true;
-
+  $: totQuestion = questions.length;
+  $: wrong = false;
+  $: correct = false;
   const nextQuestion = () => {
-    if (count !== totQuestion - 1) {
-      count++;
+    if (currentIndex !== totQuestion - 1) {
+      currentIndex++;
+      activeQuestion = questions[currentIndex];
+      incorrect_answers = questions[currentIndex]["incorrect_answers"];
+      correct_answer = questions[currentIndex]["correct_answer"];
+      answers = [...incorrect_answers, correct_answer];
+      answers = shuffle(answers);
     } else {
     }
+    correct = false;
+    wrong = false;
     disabled = !disabled;
     active = !active;
-    disableButtonAnswer = !disableButtonAnswer;
+    disableAnswerButton = !disableAnswerButton;
   };
   const handleAnswer = (answer) => {
-    if (!disableButtonAnswer) {
+    if (!disableAnswerButton) {
       if (answer === correct_answer) {
         score++;
+        correct = true;
       } else {
+        wrong = true;
       }
-      disableButtonAnswer = !disableButtonAnswer;
+      disableAnswerButton = !disableAnswerButton;
       disabled = !disabled;
       active = !active;
     }
@@ -58,7 +55,7 @@
 <div class="questions">
   <div class="top">
     <div class="title">
-      <Card active>Question {count + 1} of {questions.length}</Card>
+      <Card active>Question {currentIndex + 1} of {totQuestion}</Card>
 
       <Card>Score: {score}</Card>
     </div>
@@ -68,15 +65,19 @@
       </Card>
     </div>
   </div>
+  {#if disableAnswerButton}
+    <div class="feedback" class:wrong class:correct>
+      {#if correct}
+        Correct
+      {:else}
+        Incorrect
+      {/if}
+    </div>
+  {/if}
   <div class="question-list">
-    {#each answers as answer (answer)}
+    {#each answers as answer (Math.random() * 10000)}
       <div class="question" on:click|once={() => handleAnswer(answer)}>
-        <Card {cursor} correct="true">
-          <p>
-            {answer}
-          </p>
-        </Card>
-        <Card {cursor} wrong="true">
+        <Card {cursor}>
           <p>
             {answer}
           </p>
@@ -126,6 +127,21 @@
   }
   .score {
     width: auto;
+  }
+  .wrong {
+    color: red;
+    padding: 0.8em 1em;
+    /* background-color: rgba(0, 0, 0, 0.185); */
+    /* border-bottom: 2px solid red; */
+  }
+  .feedback {
+    margin-top: 1em;
+  }
+  .correct {
+    color: green;
+    padding: 0.8em 1em;
+    /* background-color: rgba(0, 0, 0, 0.185); */
+    /* border-bottom: 2px solid green; */
   }
   .question-title {
     align-self: stretch;

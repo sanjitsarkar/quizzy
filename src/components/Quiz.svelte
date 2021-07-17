@@ -1,39 +1,42 @@
 <script>
-  import Card from "../shared/Card.svelte";
+  import { fade, blur, fly, slide, scale } from "svelte/transition";
   import Button from "../shared/Button.svelte";
   import Question from "./Question.svelte";
-  import QuizStore from "../stores/QuizStore";
-  import axios from "axios";
-  import Result from "./Result.svelte";
-  let elevated = true;
-  const fetchQuiz = async () => {
-    const results = await axios.get("https://opentdb.com/api.php?amount=10");
-    return await results.data["results"];
-  };
+  $: questionNumber = 0;
+  let isStarted = false;
+  let quiz = fetchQuiz();
+  async function fetchQuiz() {
+    const res = await fetch("https://opentdb.com/api.php?amount=10");
+    const quiz = await res.json();
+    return quiz;
+  }
 
+  function nextQuestion() {
+    questionNumberr++;
+  }
+  function startQuiz() {
+    questionNumber = 0;
+    isStarted = !isStarted;
+    quiz = fetchQuiz();
+  }
 </script>
 
 <div class="quiz">
-  <!-- {#if !isStarted}
+  {#if !isStarted}
     <h1>Quizzy</h1>
-
-    <Button on:click|once={() => startQuiz()} {active}>
-      {#if loading}
-        Loading...
-      {:else if restartQuiz}
-        <Result />
-      {:else}
-        Start Quiz
-      {/if}
-    </Button>
-  {:else} -->
-  <!-- {#await questions}
-    Loading...
-  {:then data} -->
-  <!-- <h1>{data[0]["correct_answer"]}</h1> -->
-  <Question />
-  <!-- {/await} -->
-  <!-- {/if} -->
+    <Button
+      active="true"
+      on:click={() => {
+        startQuiz();
+      }}>Start</Button
+    >
+  {:else}
+    {#await quiz}
+      <h4>Loading...</h4>
+    {:then data}
+      <Question questions={data.results} />
+    {/await}
+  {/if}
 </div>
 
 <style>
