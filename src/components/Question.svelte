@@ -22,6 +22,14 @@
   $: totQuestion = questions.length;
   $: wrong = false;
   $: correct = false;
+  function convert(safe) {
+    return safe
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'");
+  }
   const nextQuestion = () => {
     if (currentIndex !== totQuestion) {
       currentIndex++;
@@ -62,7 +70,9 @@
     </div>
     <div class="question-title" transition:slide>
       <Card>
-        <p>{activeQuestion["question"]}</p>
+        <p>
+          {convert(activeQuestion["question"])}
+        </p>
       </Card>
     </div>
   </div>
@@ -99,7 +109,7 @@
           dispatch("startAgain");
         }}
         {disabled}
-        {active}>Start Again</Button
+        active="true">Start Again</Button
       >
     {/if}
   </div>
